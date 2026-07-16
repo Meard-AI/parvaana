@@ -1,13 +1,21 @@
-# parvaana-v1
+# parvaana (product control plane)
 
-**Project-scoped knowledge workspace** for multi-repo git: **Search + Ask** grounded in:
+**Project-scoped knowledge workspace** for multi-repo git: **Search + Ask** grounded in Parvaana content + GitAtlas temporal graph.
 
-| Engine | Role |
-|--------|------|
-| **Parvaana** | Content brain (searcher + optional AI) |
+## Meard-AI stack
+
+| Repo | Role |
+|------|------|
+| **[Meard-AI/parvaana](https://github.com/Meard-AI/parvaana)** (this) | Product UI + API (Ask, Sources, Settings) |
+| **[Meard-AI/gitatlas](https://github.com/Meard-AI/gitatlas)** | Temporal Git → HugeGraph indexer/CLI |
+| **[Meard-AI/parvaana-platform](https://github.com/Meard-AI/parvaana-platform)** | Workplace AI agent platform (searcher, connectors, agents) |
+
+| Engine | Role in Ask |
+|--------|-------------|
+| **Parvaana platform** | Content brain (searcher + optional AI) |
 | **GitAtlas → HugeGraph** | Temporal graph (commit ↔ file ↔ author) |
 
-This repo is the **product control plane** (UI + API) formerly developed as `product-v1` on the library host.
+This repo is the **product control plane** (UI + API) formerly developed as `product-v1` / `parvaana-v1` on the library host.
 
 ## Layout
 
