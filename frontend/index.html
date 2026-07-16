@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Atlas — project knowledge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main</a>
+  <div id="app" class="shell">
+    <div class="rail-backdrop" id="rail-backdrop" hidden></div>
+    <aside class="rail" id="rail" aria-label="Workspaces">
+      <div class="rail-brand">
+        <button type="button" class="icon-btn rail-close" id="btn-rail-close" aria-label="Close menu">×</button>
+        <div class="mark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-kicker">Atlas</div>
+          <div class="brand-sub">Project &amp; repo knowledge</div>
+        </div>
+      </div>
+      <button type="button" id="btn-new-project" class="btn btn-ghost btn-block">+ New Project</button>
+      <nav id="project-tree" class="tree" aria-label="Projects"></nav>
+      <div class="rail-foot">
+        <button type="button" id="btn-jobs" class="text-btn" title="Jobs (J)">Jobs</button>
+        <button type="button" id="btn-settings" class="text-btn" title="Settings (,)">Settings</button>
+        <button type="button" id="ai-chip" class="ai-pill" title="AI status — open Settings">AI …</button>
+      </div>
+      <p class="kbd-hint muted">
+        <kbd>?</kbd> shortcuts · <kbd>⌘</kbd><kbd>Enter</kbd> ask
+      </p>
+    </aside>
+
+    <div class="stage" id="main">
+      <header class="topbar">
+        <button type="button" class="icon-btn" id="btn-menu" aria-label="Open workspaces menu">☰</button>
+        <div class="topbar-title" id="topbar-title">Workspaces</div>
+        <button type="button" class="icon-btn" id="btn-settings-top" aria-label="Settings" title="Settings (,)">⚙</button>
+      </header>
+
+      <div id="view-empty" class="view empty-hero">
+        <p class="eyebrow">No project open</p>
+        <h1>Select a project to ask &amp; search</h1>
+        <p class="lede">Workspaces lists projects only — no install-wide search. Pick HugeGraph or create a project, then Add &amp; Index a repository.</p>
+        <button type="button" class="btn btn-primary" id="btn-empty-new">+ New Project</button>
+      </div>
+
+      <div id="view-project" class="view hidden">
+        <header class="instrument">
+          <div class="instrument-main">
+            <p class="eyebrow" id="project-eyebrow">Project</p>
+            <h1 id="project-name">—</h1>
+            <div class="stat-ribbon" id="project-stats" aria-label="Project stats">
+              <span class="stat"><em id="st-repos">0</em> repos</span>
+              <span class="stat"><em id="st-commits">0</em> commits</span>
+              <span class="stat"><em id="st-files">0</em> files</span>
+            </div>
+          </div>
+          <button type="button" id="btn-add-repo" class="btn btn-primary">+ Add Repository</button>
+        </header>
+
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="ask" data-for="project">Ask</button>
+          <button type="button" class="tab" data-tab="search" data-for="project">Search</button>
+          <button type="button" class="tab" data-tab="repos" data-for="project">Repos</button>
+        </div>
+
+        <section id="project-tab-ask" class="tab-panel chat-panel">
+          <div id="project-ai-banner" class="banner hidden"></div>
+          <div id="project-chat-log" class="chat-log" aria-live="polite"></div>
+          <form id="project-chat-form" class="composer">
+            <label class="sr-only" for="project-chat-input">Ask about this project</label>
+            <textarea id="project-chat-input" rows="2" placeholder="Ask how compose works, or when a file last changed…"></textarea>
+            <div class="composer-bar">
+              <span class="scope-tag" id="project-scope-tag">scope · project</span>
+              <label class="model-pick" title="Models for the active provider">
+                <span class="sr-only">Model</span>
+                <select id="project-model" class="model-select" aria-label="Model">
+                  <option value="">Active model</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn-primary" id="project-chat-send">Ask <span class="kbd-inline">⌘↵</span></button>
+            </div>
+          </form>
+        </section>
+
+        <section id="project-tab-search" class="tab-panel hidden">
+          <form id="search-form" class="search-row">
+            <input type="search" id="search-q" placeholder="Keyword search in this project…" autocomplete="off" />
+            <select id="search-scope" aria-label="Search scope">
+              <option value="project">This project</option>
+            </select>
+            <button type="submit" class="btn">Search</button>
+          </form>
+          <div id="search-results" class="results"></div>
+        </section>
+
+        <section id="project-tab-repos" class="tab-panel hidden">
+          <div id="repo-list" class="repo-grid"></div>
+        </section>
+      </div>
+
+      <div id="view-repo" class="view hidden">
+        <header class="instrument">
+          <div class="instrument-main">
+            <p class="crumb"><a href="#" id="repo-back">← Project</a></p>
+            <h1 id="repo-name">—</h1>
+            <p class="stat-ribbon mono" id="repo-stats">—</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" id="btn-sync" class="btn">Sync</button>
+            <button type="button" id="btn-reindex" class="btn">Reindex</button>
+          </div>
+        </header>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="ask" data-for="repo">Ask</button>
+          <button type="button" class="tab" data-tab="search" data-for="repo">Search</button>
+          <button type="button" class="tab" data-tab="graph" data-for="repo">Graph</button>
+        </div>
+        <section id="repo-tab-ask" class="tab-panel chat-panel">
+          <div id="repo-ai-banner" class="banner hidden"></div>
+          <div id="repo-chat-log" class="chat-log"></div>
+          <form id="repo-chat-form" class="composer">
+            <textarea id="repo-chat-input" rows="2" placeholder="Ask about this repository…"></textarea>
+            <div class="composer-bar">
+              <span class="scope-tag">scope · repo</span>
+              <label class="model-pick">
+                <span class="sr-only">Model</span>
+                <select id="repo-model" class="model-select" aria-label="Model">
+                  <option value="">Active model</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn-primary">Ask <span class="kbd-inline">⌘↵</span></button>
+            </div>
+          </form>
+        </section>
+        <section id="repo-tab-search" class="tab-panel hidden">
+          <form id="repo-search-form" class="search-row">
+            <input type="search" id="repo-search-q" placeholder="Search this repository…" autocomplete="off" />
+            <button type="submit" class="btn">Search</button>
+          </form>
+          <div id="repo-search-results" class="results"></div>
+        </section>
+        <section id="repo-tab-graph" class="tab-panel hidden">
+          <p class="hint">Graph views are product-local (git + GitAtlas). Hubble is not required.</p>
+          <div class="split">
+            <div>
+              <h3 class="panel-title">What changed</h3>
+              <div id="what-changed" class="card mono-sm">—</div>
+            </div>
+            <div>
+              <h3 class="panel-title">Blast radius</h3>
+              <form id="blast-form" class="search-row">
+                <input type="text" id="blast-sha" placeholder="commit SHA" class="mono" />
+                <button type="submit" class="btn">Compute</button>
+              </form>
+              <div id="blast-radius" class="card mono-sm"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="view-jobs" class="view hidden">
+        <header class="instrument">
+          <div class="instrument-main">
+            <p class="eyebrow">Activity</p>
+            <h1>Jobs</h1>
+            <p class="lede tight">Clone → graph index → search ingest.</p>
+          </div>
+        </header>
+        <div id="jobs-list" class="job-stack"></div>
+      </div>
+
+      <div id="view-settings" class="view hidden">
+        <header class="instrument">
+          <div class="instrument-main">
+            <p class="eyebrow">Configuration</p>
+            <h1>Settings</h1>
+            <p class="lede tight">API keys stay on this machine. Prefer Parvaana AI on library, or paste a key.</p>
+          </div>
+        </header>
+        <div id="settings-status" class="card status-card"></div>
+        <form id="settings-form" class="settings-form">
+          <label>Provider
+            <select name="api_provider_id" id="set-api-provider" aria-label="AI provider catalog">
+              <option value="auto">Loading providers…</option>
+            </select>
+          </label>
+          <p class="hint" id="set-provider-desc">Pick a provider — base URL fills in automatically (like Hermes).</p>
+          <label>API base URL
+            <input name="openai_base_url" id="set-openai-url" placeholder="https://api…/v1" autocomplete="off" />
+          </label>
+          <label>API key <span class="opt" id="key-hint"></span>
+            <input name="openai_api_key" id="set-openai-key" type="password" autocomplete="off" placeholder="paste key — leave blank to keep saved" />
+          </label>
+          <label>Default model
+            <select name="openai_model" id="set-openai-model" aria-label="Default model">
+              <option value="">—</option>
+            </select>
+          </label>
+          <label class="opt-row">Or type a custom model id
+            <input id="set-openai-model-custom" placeholder="optional override e.g. gpt-4o-mini" autocomplete="off" />
+          </label>
+          <label class="hidden">Legacy ai_provider
+            <input type="hidden" name="ai_provider" id="set-provider" value="auto" />
+          </label>
+          <label class="hidden">Parvaana URL
+            <input name="parvaana_base_url" id="set-parvaana-url" />
+          </label>
+          <p class="hint">Save stores the key locally. The Ask bar model list updates to this provider’s models. Active backend is shown on the AI chip.</p>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="btn-test-ai" class="btn">Test connection</button>
+            <button type="button" id="btn-refresh-models" class="btn">Refresh models</button>
+          </div>
+          <pre id="settings-test-out" class="mono-sm muted"></pre>
+        </form>
+        <div class="card help">
+          <h3 class="panel-title">Keyboard</h3>
+          <ul class="kbd-list">
+            <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> — send Ask</li>
+            <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>,</kbd> — Settings</li>
+            <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd> — focus Ask</li>
+            <li><kbd>Esc</kbd> — close dialogs / menu</li>
+            <li><kbd>?</kbd> — show this help</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="dlg-project">
+    <form method="dialog" id="form-project">
+      <h2>New project</h2>
+      <label>Name <input name="name" required placeholder="HugeGraph" /></label>
+      <menu>
+        <button value="cancel" class="btn btn-ghost">Cancel</button>
+        <button value="ok" class="btn btn-primary">Create</button>
+      </menu>
+    </form>
+  </dialog>
+  <dialog id="dlg-repo">
+    <form method="dialog" id="form-repo">
+      <h2>Add repository</h2>
+      <label>Repository URL
+        <input name="url" required placeholder="https://github.com/org/repo.git" />
+      </label>
+      <p class="hint">Add &amp; Index — no connectors in the UI.</p>
+      <menu>
+        <button value="cancel" class="btn btn-ghost">Cancel</button>
+        <button value="ok" class="btn btn-primary">Add &amp; Index</button>
+      </menu>
+    </form>
+  </dialog>
+  <dialog id="dlg-help">
+    <form method="dialog">
+      <h2>Shortcuts</h2>
+      <ul class="kbd-list">
+        <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> — send Ask</li>
+        <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>,</kbd> — Settings</li>
+        <li><kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd> — focus Ask input</li>
+        <li><kbd>Esc</kbd> — close menu / dialog</li>
+      </ul>
+      <menu><button value="ok" class="btn btn-primary">Got it</button></menu>
+    </form>
+  </dialog>
+  <script src="/assets/app.js" type="module"></script>
+</body>
+</html>

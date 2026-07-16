@@ -1,0 +1,33 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.mypy_cache/
+
+# Runtime / secrets
+data/*.db
+data/*.json
+data/*.db-*
+.env
+.env.*
+!.env.example
+
+# Clones & local indexes
+repos/
+*.bak
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Dogfood / screenshots / logs
+dogfood-output/
+*.log
+/tmp/
+
+# Node (if any)
+node_modules/
